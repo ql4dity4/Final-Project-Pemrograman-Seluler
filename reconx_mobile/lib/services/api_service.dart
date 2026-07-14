@@ -2,12 +2,30 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'storage_service.dart';
 
 class ApiService {
-  static String get baseUrl {
+  static String _activeBaseUrl = '';
+
+  static Future<void> init() async {
+    final customUrl = await StorageService.getCustomApiUrl();
+    if (customUrl != null && customUrl.isNotEmpty) {
+      _activeBaseUrl = customUrl;
+    } else {
+      _activeBaseUrl = defaultBaseUrl;
+    }
+  }
+
+  static String get defaultBaseUrl {
     if (kIsWeb) return 'http://localhost:3000';
     if (Platform.isAndroid) return 'http://10.0.2.2:3000';
     return 'http://localhost:3000';
+  }
+
+  static String get baseUrl => _activeBaseUrl.isNotEmpty ? _activeBaseUrl : defaultBaseUrl;
+
+  static void setBaseUrl(String url) {
+    _activeBaseUrl = url;
   }
 
   static Future<Map<String, dynamic>> dnsLookup(String domain) async {

@@ -71,6 +71,91 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _showApiSettingsDialog() {
+    final controller = TextEditingController(text: ApiService.baseUrl);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bgSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFF1E293B)),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.settings_ethernet, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'API Settings',
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter the backend API server URL. Use localhost for Emulator/Web, or your computer\'s local IP address if running on a physical Android device.',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 11.5, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF1E293B)),
+                  color: AppColors.bgCard,
+                ),
+                child: TextField(
+                  controller: controller,
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontFamily: 'monospace'),
+                  decoration: const InputDecoration(
+                    hintText: 'http://192.168.1.x:3000',
+                    hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await StorageService.setCustomApiUrl(null);
+                await ApiService.init();
+                if (context.mounted) Navigator.pop(context);
+                _checkBackendStatus();
+              },
+              child: const Text('Reset', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textPrimary, fontSize: 12)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                final newUrl = controller.text.trim();
+                if (newUrl.isNotEmpty) {
+                  await StorageService.setCustomApiUrl(newUrl);
+                  ApiService.setBaseUrl(newUrl);
+                }
+                if (context.mounted) Navigator.pop(context);
+                _checkBackendStatus();
+              },
+              child: const Text('Save', style: TextStyle(color: Colors.white, fontSize: 12)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _cleanDomain(String input) {
     String domain = input.trim().toLowerCase();
     domain = domain.replaceAll(RegExp(r'^https?://'), '');
@@ -271,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         // Health check status pill
         GestureDetector(
-          onTap: _checkBackendStatus,
+          onTap: _showApiSettingsDialog,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(

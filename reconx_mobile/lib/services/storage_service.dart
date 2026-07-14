@@ -87,4 +87,21 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_bookmarksKey);
   }
+
+  // ============= CUSTOM API SERVER =============
+  static const String _apiUrlKey = 'reconx_api_url';
+
+  static Future<String?> getCustomApiUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_apiUrlKey);
+  }
+
+  static Future<void> setCustomApiUrl(String? url) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (url == null || url.trim().isEmpty) {
+      await prefs.remove(_apiUrlKey);
+    } else {
+      await prefs.setString(_apiUrlKey, url.trim());
+    }
+  }
 }
